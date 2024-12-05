@@ -17,5 +17,6 @@ app.get('/', (req, res) => {
 app.use('/login', require('./routes/auth'));
 app.use('/user', require('./routes/user'))
 app.use('/post', require('./routes/post'))
+app.use('/media', require('./routes/media'));
 
 module.exports = app
