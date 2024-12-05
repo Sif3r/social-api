@@ -3,7 +3,7 @@ name: Deploy to Azure Web App
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   NODE_VERSION: '20.x'
