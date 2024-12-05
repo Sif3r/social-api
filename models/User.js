@@ -3,15 +3,21 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 class User {
+
   async createUser(username, password, isPrivate, isAdmin) {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
+
       const query = `
-        INSERT INTO users (username, password, is_private, is_admin)
-        RETURNING *;
+      INSERT INTO users (username, password, is_private, is_admin)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
       `;
-      const values = [username, hashedPassword, isPrivate, isAdmin];
+
+      const values = [username, hashedPassword, Boolean(isPrivate), Boolean(isAdmin)];
+
       const result = await pool.query(query, values);
+
       return result.rows[0];
     } catch (error) {
       console.error('Error creating user:', error.message);
@@ -75,10 +81,10 @@ class User {
       const values = Object.values(updates);
       const setClause = keys.map((key, idx) => `${key} = $${idx + 2}`).join(', ');
       const query = `
-        UPDATE users
-        SET ${setClause}
-        WHERE id = $1
-        RETURNING *;
+      UPDATE users
+      SET ${setClause}
+      WHERE id = $1
+      RETURNING *;
       `;
       const result = await pool.query(query, [id, ...values]);
       return result.rows[0];

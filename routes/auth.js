@@ -5,23 +5,26 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 
 router.post('/login', async (req, res) => {
-  const user = await User.login(req.body.email)
-  const userInstance = new User();
+  try {
+    const userInstance = new User();
+    const { username, password } = req.body;
 
-  if (!user)
-    return res.status(400).json('Identifiants invalides')
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required.' });
+    }
 
-  if (bcrypt.compareSync(req.body.password, user.password)) {
-    const token = jwt.sign({ id: user.id }, 'secret');
-    userInstance.id = user.id;
-    await userInstance.setToken(token)
+    const { token, user } = await userInstance.login(username, password);
 
     res.json({
-      message: 'Succès',
-      token: token
-    })
-  } else
-    res.status(400).json('Identifiants invalides')
-})
+      message: 'Login successful',
+      token: token,
+      user: user,
+    });
+  } catch (error) {
+    console.error('Error during login:', error.message);
+    res.status(401).json({ error: 'Invalid username or password' });
+  }
+});
 
 module.exports = router
+
