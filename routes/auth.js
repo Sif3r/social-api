@@ -1,30 +1,31 @@
-const express = require('express')
-const User = require('../models/User')
-const router = express.Router()
-const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-router.post('/login', async (req, res) => {
+module.exports = async function (req, res, next) {
   try {
-    const userInstance = new User();
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required.' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Authorization header is missing. You must be authenticated first.' });
     }
 
-    const { token, user } = await userInstance.login(username, password);
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      return res.status(401).json({ error: 'Invalid authorization format. Use "Bearer <token>".' });
+    }
 
-    res.json({
-      message: 'Login successful',
-      token: token,
-      user: user,
-    });
+    const token = tokenParts[1];
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use an environment variable for the secret key
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired token.' });
+    }
+
+    req.user = decoded;
+    next();
   } catch (error) {
-    console.error('Error during login:', error.message);
-    res.status(401).json({ error: 'Invalid username or password' });
+    console.error('Authentication error:', error);
+    res.status(500).json({ error: 'An internal server error occurred.' });
   }
-});
-
-module.exports = router
-
+};
