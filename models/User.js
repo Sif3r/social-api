@@ -1,24 +1,18 @@
-const { PrismaClient } = require('@prisma/client');
+const pool = require('../db/config');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 class User {
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   async createUser(username, password, isPrivate, isAdmin) {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await this.prisma.user.create({
-        data: {
-          username,
-          password: hashedPassword,
-          isPrivate: Boolean(isPrivate),
-          isAdmin: Boolean(isAdmin),
-        },
-      });
-      return user;
+      const query = `
+        INSERT INTO users (username, password, is_private, is_admin)
+        RETURNING *;
+      `;
+      const values = [username, hashedPassword, isPrivate, isAdmin];
+      const result = await pool.query(query, values);
+      return result.rows[0];
     } catch (error) {
       console.error('Error creating user:', error.message);
       throw new Error('Failed to create user');
@@ -27,35 +21,37 @@ class User {
 
   async login(username, password) {
     try {
-      // Find the user
-      const user = await this.prisma.user.findUnique({ where: { username } });
+      const query = `SELECT * FROM users WHERE username = $1`;
+      const result = await pool.query(query, [username]);
+      const user = result.rows[0];
+
       if (!user) {
         throw new Error('Invalid username or password');
       }
 
-      // Verify the password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         throw new Error('Invalid username or password');
       }
 
-      // Generate a JWT token
       const token = jwt.sign(
-        { id: user.id, username: user.username, isAdmin: user.isAdmin },
-        process.env.JWT_SECRET, // Use a secret key from environment variables
-        { expiresIn: '1h' } // Token expires in 1 hour
+        { id: user.id, username: user.username, isAdmin: user.is_admin },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
       );
 
       return { token, user };
     } catch (error) {
       console.error('Error during login:', error.message);
-      throw new Error(error.message || 'Failed to login');
+      throw new Error('Failed to login');
     }
   }
 
   async find(id) {
     try {
-      return await this.prisma.user.findUnique({ where: { id } });
+      const query = `SELECT * FROM users WHERE id = $1`;
+      const result = await pool.query(query, [id]);
+      return result.rows[0];
     } catch (error) {
       console.error('Error finding user:', error.message);
       throw new Error('Failed to find user');
@@ -64,7 +60,9 @@ class User {
 
   async getUsers() {
     try {
-      return await this.prisma.user.findMany();
+      const query = `SELECT * FROM users`;
+      const result = await pool.query(query);
+      return result.rows;
     } catch (error) {
       console.error('Error retrieving users:', error.message);
       throw new Error('Failed to retrieve users');
@@ -73,10 +71,17 @@ class User {
 
   async updateUser(id, updates) {
     try {
-      return await this.prisma.user.update({
-        where: { id },
-        data: { ...updates, updated_at: new Date() },
-      });
+      const keys = Object.keys(updates);
+      const values = Object.values(updates);
+      const setClause = keys.map((key, idx) => `${key} = $${idx + 2}`).join(', ');
+      const query = `
+        UPDATE users
+        SET ${setClause}
+        WHERE id = $1
+        RETURNING *;
+      `;
+      const result = await pool.query(query, [id, ...values]);
+      return result.rows[0];
     } catch (error) {
       console.error('Error updating user:', error.message);
       throw new Error('Failed to update user');
@@ -85,7 +90,9 @@ class User {
 
   async deleteUser(id) {
     try {
-      return await this.prisma.user.delete({ where: { id } });
+      const query = `DELETE FROM users WHERE id = $1 RETURNING *`;
+      const result = await pool.query(query, [id]);
+      return result.rows[0];
     } catch (error) {
       console.error('Error deleting user:', error.message);
       throw new Error('Failed to delete user');

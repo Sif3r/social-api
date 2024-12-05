@@ -39,14 +39,6 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Generate Prisma Client
-      - name: Generate Prisma Client
-        run: npm run prisma:generate
-
-      # Apply Prisma Migrations
-      - name: Apply Prisma Migrations
-        run: npm run prisma:migrate
-
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
