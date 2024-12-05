@@ -1,12 +1,56 @@
 const express = require('express');
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
-const auth = require('../middlewares/auth'); // Assuming you have an auth middleware
+const auth = require('../middlewares/auth');
 const router = express.Router();
 
 const post = new Post();
 
-// Create a new post
+/**
+ * @swagger
+ * /post:
+ *   post:
+ *     summary: Create a new post
+ *     description: Create a new post associated with the authenticated user.
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - bearerAuth: [] # JWT authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 description: The content of the post.
+ *     responses:
+ *       201:
+ *         description: Post created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 content:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 userId:
+ *                   type: integer
+ *       400:
+ *         description: Content is required.
+ *       500:
+ *         description: Failed to create post.
+ */
 router.post('/', auth, async (req, res) => {
   try {
     const { content } = req.body;
@@ -24,7 +68,48 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// Get a specific post by ID
+/**
+ * @swagger
+ * /post/{id}:
+ *   get:
+ *     summary: Get a specific post
+ *     description: Retrieve a post by its ID.
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - bearerAuth: [] # JWT authentication
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the post.
+ *     responses:
+ *       200:
+ *         description: The requested post.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 content:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 userId:
+ *                   type: integer
+ *       404:
+ *         description: Post not found.
+ *       500:
+ *         description: Failed to fetch post.
+ */
 router.get('/:id(\\d+)', auth, async (req, res) => {
   try {
     const postId = parseInt(req.params.id, 10);

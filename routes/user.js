@@ -5,7 +5,50 @@ const router = express.Router();
 
 const user = new User();
 
-// Create a new user
+/**
+ * @swagger
+ * /user:
+ *   post:
+ *     summary: Create a new user
+ *     description: Create a new user in the system.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               isPrivate:
+ *                 type: boolean
+ *               isAdmin:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: User created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 isPrivate:
+ *                   type: boolean
+ *                 isAdmin:
+ *                   type: boolean
+ *       400:
+ *         description: Username and password are required.
+ *       500:
+ *         description: Failed to create user.
+ */
 router.post('/', async (req, res) => {
   try {
     const { username, password, isPrivate, isAdmin } = req.body;
@@ -20,7 +63,51 @@ router.post('/', async (req, res) => {
   }
 });
 
-// User login
+/**
+ * @swagger
+ * /user/login:
+ *   post:
+ *     summary: User login
+ *     description: Authenticate a user and return a JWT token.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     username:
+ *                       type: string
+ *                     isPrivate:
+ *                       type: boolean
+ *                     isAdmin:
+ *                       type: boolean
+ *       400:
+ *         description: Username and password are required.
+ *       401:
+ *         description: Invalid username or password.
+ */
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -35,7 +122,37 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get all users (protected route)
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Get all users
+ *     description: Retrieve a list of all users. Protected route.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: [] # Requires JWT authentication
+ *     responses:
+ *       200:
+ *         description: A list of users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   username:
+ *                     type: string
+ *                   isPrivate:
+ *                     type: boolean
+ *                   isAdmin:
+ *                     type: boolean
+ *       500:
+ *         description: Failed to fetch users.
+ */
 router.get('/', auth, async (req, res) => {
   try {
     const users = await user.getUsers();
@@ -46,7 +163,44 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Get a specific user (protected route)
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Get a specific user
+ *     description: Retrieve a user by their ID. Protected route.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: [] # Requires JWT authentication
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user ID.
+ *     responses:
+ *       200:
+ *         description: The requested user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 isPrivate:
+ *                   type: boolean
+ *                 isAdmin:
+ *                   type: boolean
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Failed to fetch user.
+ */
 router.get('/:id(\\d+)', auth, async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
@@ -61,7 +215,38 @@ router.get('/:id(\\d+)', auth, async (req, res) => {
   }
 });
 
-// Update a user (protected route)
+/**
+ * @swagger
+ * /user/{id}:
+ *   put:
+ *     summary: Update a user
+ *     description: Update a user's details by their ID. Protected route.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: [] # Requires JWT authentication
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       200:
+ *         description: User updated successfully.
+ *       400:
+ *         description: No updates provided.
+ *       500:
+ *         description: Failed to update user.
+ */
 router.put('/:id(\\d+)', auth, async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
@@ -77,7 +262,29 @@ router.put('/:id(\\d+)', auth, async (req, res) => {
   }
 });
 
-// Delete a user (protected route)
+/**
+ * @swagger
+ * /user/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     description: Delete a user by their ID. Protected route.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: [] # Requires JWT authentication
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The user ID.
+ *     responses:
+ *       204:
+ *         description: User deleted successfully.
+ *       500:
+ *         description: Failed to delete user.
+ */
 router.delete('/:id(\\d+)', auth, async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
