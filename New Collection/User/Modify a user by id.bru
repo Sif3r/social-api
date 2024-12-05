@@ -1,0 +1,27 @@
+meta {
+  name: Modify a user by id
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{basePath}}/user/:id
+  body: formUrlEncoded
+  auth: none
+}
+
+params:path {
+  id: 1
+}
+
+headers {
+  authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg4MTE4MTc5fQ.TtUzYr-chxjIdMw0KjyGgIKawB8efyDHaoxG9NZ-gLA
+}
+
+body:form-urlencoded {
+  email: ag@gmail.com
+  password: passwd
+  street: Avenue xxx
+  zipCode: 75001
+  city: Paris
+}

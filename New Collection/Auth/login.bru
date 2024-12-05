@@ -1,0 +1,16 @@
+meta {
+  name: login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{basePath}}/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  email: b@x.fr
+  password: passwd
+}

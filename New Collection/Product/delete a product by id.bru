@@ -1,0 +1,15 @@
+meta {
+  name: delete a product by id
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{basePath}}/product/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 2
+}

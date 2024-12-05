@@ -1,0 +1,22 @@
+meta {
+  name: modify a product
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{basePath}}/product/:id
+  body: formUrlEncoded
+  auth: none
+}
+
+params:path {
+  id: 1
+}
+
+body:form-urlencoded {
+  name: tool1
+  description: look good
+  price: 0
+  stock: 0
+}
